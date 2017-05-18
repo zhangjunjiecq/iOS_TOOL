@@ -1,0 +1,30 @@
+#!/bin/bash
+key_pwd=$1
+
+if  [ ! -n "$key_pwd" ] ;then
+    echo "you have not input a password!"
+    exit
+fi
+
+/usr/local/bin/expect <<-EOF
+
+set pwd $key_pwd
+
+spawn openssl pkcs12 -clcerts -nokeys -out cert.pem -in cert.p12
+expect "Enter Import Password:"
+send "\r"
+expect eof
+
+spawn openssl pkcs12 -nocerts -out key.pem -in key.p12
+expect "Enter Import Password:"
+send "\r"
+expect "Enter PEM pass phrase:"
+send "$key_pwd\r"
+expect "Verifying - Enter PEM pass phrase:"
+send "$key_pwd\r"
+expect eof
+
+EOF
+
+cat cert.pem key.pem > ck.pem
+
